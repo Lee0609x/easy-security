@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.lee0609x.easysecurity.mapper.ResourceMapper">
+    <resultMap id="resource" type="com.github.lee0609x.easysecurity.model.Resource">
+        <id column="id" property="id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="url"  property="url" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="method"  property="method" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="retrieveResourceByRoleId" parameterType="java.lang.String" resultMap="resource">
+        SELECT
+            resource.id, resource.url, resource.method
+        FROM
+            resource
+            LEFT JOIN role_resource ON role_resource.resource_id = resource.id
+            LEFT JOIN role ON role.id = role_resource.role_id
+        WHERE
+            role.id = #{roleId}
+        GROUP BY
+            resource.id
+    </select>
+</mapper>

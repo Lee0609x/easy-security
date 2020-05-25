@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.github.lee0609x.easysecurity.mapper.RoleMapper">
+    <resultMap id="role" type="com.github.lee0609x.easysecurity.model.Role">
+        <id column="id" property="id" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="name"  property="name" javaType="java.lang.String" jdbcType="VARCHAR"/>
+        <result column="chinese_name"  property="chineseName" javaType="java.lang.String" jdbcType="VARCHAR"/>
+    </resultMap>
+    <select id="retrieveRoleByUserId" parameterType="java.lang.String" resultMap="role">
+        SELECT
+            role.id, role.name, role.chinese_name
+        FROM
+            role
+            LEFT JOIN  user_role ON role.id = user_role.role_id
+            LEFT JOIN user ON user_role.user_id = user.id
+        WHERE
+            user.id = #{id}
+    </select>
+    <select id="retrieveAllRole" resultMap="role">
+        SELECT
+            role.id, role.name, role.chinese_name
+        FROM
+            role
+    </select>
+</mapper>

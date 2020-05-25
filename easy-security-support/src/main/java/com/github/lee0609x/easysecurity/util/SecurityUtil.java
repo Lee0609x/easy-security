@@ -1,0 +1,30 @@
+package com.github.lee0609x.easysecurity.util;
+
+import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+/**
+ * Created by Lee0609x
+ * Date:2020/5/25
+ */
+public class SecurityUtil {
+
+    private static AuthenticationTrustResolverImpl resolver = new AuthenticationTrustResolverImpl();
+
+    /**
+     * 获取当前用户
+     */
+    public static Authentication getSecurityUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return authentication;
+    }
+
+    /**
+     * 判断当前用户是否为匿名用户
+     * @return
+     */
+    public static boolean getUserLoginStatus() {
+        return !resolver.isAnonymous(getSecurityUser());
+    }
+}

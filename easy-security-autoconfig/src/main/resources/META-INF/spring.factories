@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.github.lee0609x.easysecurity.autoconfigure.DataSourceConfig,\
+com.github.lee0609x.easysecurity.autoconfigure.WebSecurityConfig,\
+com.github.lee0609x.easysecurity.autoconfigure.ComponentScanConfig
+
