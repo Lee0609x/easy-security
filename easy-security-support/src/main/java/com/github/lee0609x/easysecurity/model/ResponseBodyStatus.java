@@ -7,7 +7,8 @@ package com.github.lee0609x.easysecurity.model;
 public enum ResponseBodyStatus {
     SUCCESS(0, "成功"), FAILURE(-1, "失败"),
     HTTP401(401, "当前用户未登录，需要登录方可继续操作"),
-    HTTP403(403, "当前用户未持有该资源权限"),;
+    HTTP403(403, "当前用户未持有该资源权限"),
+    LOGIN_FAILURE(-401, "登录失败，账号/密码错误");
 
     private Integer code;
     private String message;

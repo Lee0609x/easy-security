@@ -1,4 +1,4 @@
-package com.github.lee0609x.easysecurity.filter;
+package com.github.lee0609x.easysecurity.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

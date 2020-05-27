@@ -1,11 +1,15 @@
 package com.github.lee0609x.easysecurity.autoconfigure;
 
 import com.github.lee0609x.easysecurity.autoconfigure.properties.EasySecurityConfigProperties;
+import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.filter.*;
+import com.github.lee0609x.easysecurity.handler.Http403AccessDeniedHandler;
+import com.github.lee0609x.easysecurity.handler.JwtLogoutHandler;
+import com.github.lee0609x.easysecurity.handler.JwtLogoutSuccessHandler;
+import com.github.lee0609x.easysecurity.handler.NeedLoginAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.AccessDecisionVoter;
 import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -18,7 +22,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import org.springframework.security.web.header.HeaderWriterFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -67,6 +78,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()//关闭csrf
                 .formLogin().disable()//关闭默认的登录功能
+                .logout().disable()//关闭默认的注销功能
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)//关闭session
                 .and()
                 .authorizeRequests()
@@ -84,9 +96,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.exceptionHandling()
                 .authenticationEntryPoint(needLoginAuthenticationEntryPoint())
                 .accessDeniedHandler(http403AccessDeniedHandler());
-        //JWT登录与认证
-        http.addFilterBefore(jwtLoginFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.addFilterBefore(jwtTokenFilter(), JwtLoginFilter.class);
+        //JWT登录
+        http.addFilterAfter(jwtLoginFilter(), HeaderWriterFilter.class);
+        //JWT认证
+        http.addFilterAfter(jwtTokenFilter(), JwtLoginFilter.class);
+        //JWT注销
+        http.addFilterAfter(jwtLogoutFilter(), JwtTokenFilter.class);
     }
 
     /**
@@ -123,7 +138,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public NeedLoginAuthenticationEntryPoint needLoginAuthenticationEntryPoint() {
-        return new NeedLoginAuthenticationEntryPoint(configProperties.getPage().getLogin());
+        return new NeedLoginAuthenticationEntryPoint(configProperties.getPage().getNeedLogin());
     }
 
     @Bean
@@ -133,12 +148,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public JwtLoginFilter jwtLoginFilter() throws Exception {
-        return new JwtLoginFilter(authenticationManager(), configProperties.getPage().getLoginSuccess(), configProperties.getPage().getLoginFailure());
+        return new JwtLoginFilter(new AntPathRequestMatcher(configProperties.getPage().getLogin(), "POST"),
+                authenticationManager(), configProperties.getPage().getLoginSuccess(),
+                configProperties.getPage().getLoginFailure(),
+                configProperties.getJwt().getTimeOut());
     }
 
     @Bean
     public JwtTokenFilter jwtTokenFilter() {
         return new JwtTokenFilter();
+    }
+
+    @Bean
+    public JwtLogoutFilter jwtLogoutFilter() throws IOException, ServletException {
+        return new JwtLogoutFilter(new AntPathRequestMatcher(configProperties.getPage().getLogout(), "GET"),
+                new JwtLogoutSuccessHandler(configProperties.getPage().getLogoutSuccess()),
+                new JwtLogoutHandler());
     }
 
 }

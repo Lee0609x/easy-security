@@ -1,6 +1,7 @@
 package com.github.lee0609x.easysecurity.filter;
 
 
+import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.model.SecurityUser;
 import com.github.lee0609x.easysecurity.model.User;
 import com.github.lee0609x.easysecurity.util.JsonUtil;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,15 +28,24 @@ import java.io.IOException;
  */
 public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String FILTER_APPLIED = "__spring_security_demoFilter_filterApplied";//重要，该标识会使得该Filter不被自动注入到servlet filter chain中
+    private static final String FILTER_APPLIED = "__spring_security_demoFilter_filterApplied";
 
     private final String defaultSussesURL;
     private final String defaultUnSussesURL;
+    private final long jwtTimeOut;
 
-    public JwtLoginFilter(AuthenticationManager authenticationManager, String defaultSussesURL, String defaultUnSussesURL) {
-        super(new AntPathRequestMatcher("/login", "POST"));
+    /**
+     * @param loginRequestMatcher 请求路径匹配
+     * @param authenticationManager 用户认证管理器
+     * @param defaultSussesURL 登录成功跳转
+     * @param defaultUnSussesURL 登录失败跳转
+     * @param timeOut 登录有效期
+     */
+    public JwtLoginFilter(RequestMatcher loginRequestMatcher, AuthenticationManager authenticationManager, String defaultSussesURL, String defaultUnSussesURL, long timeOut) {
+        super(loginRequestMatcher);
         this.defaultSussesURL = defaultSussesURL;
         this.defaultUnSussesURL = defaultUnSussesURL;
+        this.jwtTimeOut = timeOut;
         setAuthenticationManager(authenticationManager);
     }
 
@@ -58,8 +69,11 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         SecurityUser securityUser = (SecurityUser) authResult.getPrincipal();
         securityUser.getUser().setPassword("");//将密码置空
-        String jwt = JwtUtil.getTokenBySecurityUser(securityUser);
-        response.addCookie(new Cookie("jwt", jwt));
+        String jwt = JwtUtil.getTokenBySecurityUser(securityUser, jwtTimeOut);
+        Cookie cookie = new Cookie(EasyConstants.JWT_COOKIE_NAME, jwt);
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+        response.addCookie(cookie);
         response.sendRedirect(defaultSussesURL);
     }
 

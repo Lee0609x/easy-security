@@ -28,4 +28,19 @@ public class StatusController {
         return ResponseBodyUtil.errorResponse(ResponseBodyStatus.HTTP403, null);
     }
 
+    @GetMapping("/login/success")
+    public ResponseBody<String> loginSuccess() {
+        return ResponseBodyUtil.successResponse("登录成功");
+    }
+
+    @GetMapping("/login/failure")
+    public ResponseBody<String> loginFailure() {
+        return ResponseBodyUtil.errorResponse(ResponseBodyStatus.LOGIN_FAILURE, null);
+    }
+
+    @GetMapping("/logout/success")
+    public ResponseBody<String> logoutSuccess() {
+        return ResponseBodyUtil.successResponse("已退出登录");
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.github.lee0609x.easysecurity.util;
 
+import com.github.lee0609x.easysecurity.model.SecurityUser;
 import org.springframework.security.authentication.AuthenticationTrustResolverImpl;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,6 +19,10 @@ public class SecurityUtil {
     public static Authentication getSecurityUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication;
+    }
+
+    public static void setSecurityUser(Authentication authentication) {
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     /**
