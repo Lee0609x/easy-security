@@ -16,7 +16,7 @@ import java.util.List;
  * 判断用户是否拥有权限
  * 投票逻辑：
  *  只要存在一个voter同意，则通过验证
- *  其他情况全部为未通过
+ *  其他情况为未通过
  * Created by Lee0609x
  * Date:2020/5/16
  */

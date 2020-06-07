@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 public class SecurityUtil {
 
-    private static AuthenticationTrustResolverImpl resolver = new AuthenticationTrustResolverImpl();
+    private final static AuthenticationTrustResolverImpl resolver = new AuthenticationTrustResolverImpl();
 
     /**
      * 获取当前用户

@@ -14,7 +14,7 @@ import java.io.InputStream;
  */
 public class JsonUtil {
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     static {
         objectMapper.configure(MapperFeature.REQUIRE_SETTERS_FOR_GETTERS, true);

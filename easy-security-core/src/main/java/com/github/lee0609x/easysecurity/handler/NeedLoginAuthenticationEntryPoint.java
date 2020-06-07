@@ -19,7 +19,7 @@ public class NeedLoginAuthenticationEntryPoint implements AuthenticationEntryPoi
 
     private static final Logger logger = LoggerFactory.getLogger(NeedLoginAuthenticationEntryPoint.class);
 
-    private String redirectLoginURL = "/login";
+    private final String redirectLoginURL;
 
     public NeedLoginAuthenticationEntryPoint(String redirectLoginURL) {
         this.redirectLoginURL = redirectLoginURL;
@@ -27,7 +27,7 @@ public class NeedLoginAuthenticationEntryPoint implements AuthenticationEntryPoi
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
-        logger.info(String.format("需要登录才可以访问, 请求重定向至: %s", redirectLoginURL));
+        logger.debug(String.format("需要登录才可以访问, 请求重定向至: %s", redirectLoginURL));
         response.sendRedirect(redirectLoginURL);
     }
 }

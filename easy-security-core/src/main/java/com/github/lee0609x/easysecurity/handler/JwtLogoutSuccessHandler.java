@@ -1,15 +1,14 @@
 package com.github.lee0609x.easysecurity.handler;
 
-import com.github.lee0609x.easysecurity.constants.EasyConstants;
+import com.github.lee0609x.easysecurity.util.JsonUtil;
+import com.github.lee0609x.easysecurity.util.ResponseBodyUtil;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * 注销后，重定向到指定位置
@@ -18,14 +17,9 @@ import java.util.Arrays;
  */
 public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
-    private String logoutSuccessURL;
-
-    public JwtLogoutSuccessHandler(String logoutSuccessURL) {
-        this.logoutSuccessURL = logoutSuccessURL;
-    }
-
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        response.sendRedirect(logoutSuccessURL);
+        String responseBody = JsonUtil.Object2Json(ResponseBodyUtil.successResponse("用户已注销"));
+        response.getWriter().write(responseBody);
     }
 }

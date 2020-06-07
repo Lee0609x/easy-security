@@ -36,12 +36,12 @@ public class CustomVoter implements AccessDecisionVoter<FilterInvocation> {
             for (ConfigAttribute configAttribute : attributes) {
                 if (grantedAuthority.getAuthority() != null && configAttribute.getAttribute() != null
                         && grantedAuthority.getAuthority().equals(configAttribute.getAttribute())) {
-                    logger.info(String.format("角色匹配成功, 用户拥有%s角色", grantedAuthority.getAuthority()));
+                    logger.debug(String.format("角色匹配成功, 用户拥有%s角色", grantedAuthority.getAuthority()));
                     return ACCESS_GRANTED;
                 }
             }
         }
-        logger.info(String.format("当前用户权限不足, 期望角色:%s, 实际角色:%s",
+        logger.debug(String.format("当前用户权限不足, 期望角色:%s, 实际角色:%s",
                 Arrays.toString(attributes.toArray()), Arrays.toString(authentication.getAuthorities().toArray())));
         return ACCESS_DENIED;
     }

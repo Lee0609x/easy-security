@@ -1,7 +1,6 @@
 package com.github.lee0609x.easysecurity.autoconfigure;
 
 import com.github.lee0609x.easysecurity.autoconfigure.properties.EasySecurityConfigProperties;
-import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.filter.*;
 import com.github.lee0609x.easysecurity.handler.Http403AccessDeniedHandler;
 import com.github.lee0609x.easysecurity.handler.JwtLogoutHandler;
@@ -21,10 +20,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.CookieClearingLogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -69,8 +64,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private EasySecurityConfigProperties configProperties;
 
     /**
-     * 主要是修改了默认的FilterSecurityInterceptor的SecurityMetadataSource和AccessDecisionManager
-     * 原有的matcher已经全部失效，所有经过的请求，都要与数据库中的资源进行比较
+     * 因为修改了默认的FilterSecurityInterceptor的SecurityMetadataSource和AccessDecisionManager
+     * 原有的matcher已经全部失效，所有经过登录与非登录请求，都要与数据库中的资源进行比较
      * @param http
      * @throws Exception
      */
@@ -102,6 +97,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.addFilterAfter(jwtTokenFilter(), JwtLoginFilter.class);
         //JWT注销
         http.addFilterAfter(jwtLogoutFilter(), JwtTokenFilter.class);
+        //JWT续签
+        http.addFilterAfter(jwtRenewalFilter(), FilterSecurityInterceptor.class);
     }
 
     /**
@@ -111,12 +108,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new Pbkdf2PasswordEncoder(PASSWORD_SECRET);
+        auth.userDetailsService(userDetailsService).passwordEncoder(new Pbkdf2PasswordEncoder(PASSWORD_SECRET));
     }
 
     @Bean
@@ -138,32 +130,35 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public NeedLoginAuthenticationEntryPoint needLoginAuthenticationEntryPoint() {
-        return new NeedLoginAuthenticationEntryPoint(configProperties.getPage().getNeedLogin());
+        return new NeedLoginAuthenticationEntryPoint(configProperties.getRequest().getNeedLogin());
     }
 
     @Bean
     public Http403AccessDeniedHandler http403AccessDeniedHandler() {
-        return new Http403AccessDeniedHandler(configProperties.getPage().getHttp403());
+        return new Http403AccessDeniedHandler(configProperties.getRequest().getHttp403());
     }
 
-    @Bean
     public JwtLoginFilter jwtLoginFilter() throws Exception {
-        return new JwtLoginFilter(new AntPathRequestMatcher(configProperties.getPage().getLogin(), "POST"),
-                authenticationManager(), configProperties.getPage().getLoginSuccess(),
-                configProperties.getPage().getLoginFailure(),
+        return new JwtLoginFilter(new AntPathRequestMatcher(configProperties.getRequest().getLogin(), "POST"),
+                authenticationManager(),
+                configProperties.getJwt().getHeader(),
                 configProperties.getJwt().getTimeOut());
     }
 
-    @Bean
     public JwtTokenFilter jwtTokenFilter() {
-        return new JwtTokenFilter();
+        return new JwtTokenFilter(configProperties.getJwt().getHeader());
     }
 
-    @Bean
     public JwtLogoutFilter jwtLogoutFilter() throws IOException, ServletException {
-        return new JwtLogoutFilter(new AntPathRequestMatcher(configProperties.getPage().getLogout(), "GET"),
-                new JwtLogoutSuccessHandler(configProperties.getPage().getLogoutSuccess()),
+        return new JwtLogoutFilter(new AntPathRequestMatcher(configProperties.getRequest().getLogout(), "GET"),
+                new JwtLogoutSuccessHandler(),
                 new JwtLogoutHandler());
+    }
+
+    public JwtRenewalFilter jwtRenewalFilter() {
+        return new JwtRenewalFilter(new AntPathRequestMatcher(configProperties.getRequest().getRenewal(), "GET"),
+                configProperties.getJwt().getHeader(),
+                configProperties.getJwt().getTimeOut());
     }
 
 }

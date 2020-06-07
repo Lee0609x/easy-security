@@ -1,6 +1,6 @@
 package com.github.lee0609x.easysecurity.util;
 /**
- * 计算全局唯一ID, 基于雪花算法
+ * 计算全局唯一ID
  * @author Lee0609x
  */
 public class SequenceUtil {

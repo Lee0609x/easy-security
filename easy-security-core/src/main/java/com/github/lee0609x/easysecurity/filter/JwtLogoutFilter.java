@@ -1,12 +1,11 @@
 package com.github.lee0609x.easysecurity.filter;
 
+import com.github.lee0609x.easysecurity.util.SecurityUtil;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.CompositeLogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-import org.springframework.util.Assert;
 import org.springframework.web.filter.GenericFilterBean;
 
 import javax.servlet.FilterChain;
@@ -25,7 +24,7 @@ import java.io.IOException;
  */
 public class JwtLogoutFilter extends GenericFilterBean {
 
-    private static final String FILTER_APPLIED = "__spring_security_demoFilter_filterApplied";
+    private static final String FILTER_APPLIED = "__spring_security_jwtLogoutFilter_filterApplied";
 
     private final RequestMatcher logoutRequestMatcher;
     private final LogoutHandler handler;
@@ -46,8 +45,8 @@ public class JwtLogoutFilter extends GenericFilterBean {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         if (requiresLogout(request, response)) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth == null) {
+            Authentication auth = SecurityUtil.getSecurityUser();
+            if (auth == null || SecurityUtil.getUserLoginStatus()) {
                 logger.debug("用户已被注销");
                 logoutSuccessHandler.onLogoutSuccess(request, response, null);
                 return;

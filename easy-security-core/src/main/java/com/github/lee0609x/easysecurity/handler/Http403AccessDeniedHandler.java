@@ -27,7 +27,7 @@ public class Http403AccessDeniedHandler implements AccessDeniedHandler {
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
-        logger.info(String.format("权限不足, 请求重定向至: %s", redirect403URL));
+        logger.debug(String.format("权限不足, 请求重定向至: %s", redirect403URL));
         response.sendRedirect(redirect403URL);
     }
 }

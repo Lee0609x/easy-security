@@ -2,24 +2,23 @@ package com.github.lee0609x.easysecurity.filter;
 
 
 import com.github.lee0609x.easysecurity.constants.EasyConstants;
-import com.github.lee0609x.easysecurity.model.SecurityUser;
-import com.github.lee0609x.easysecurity.model.User;
+import com.github.lee0609x.easysecurity.model.*;
 import com.github.lee0609x.easysecurity.util.JsonUtil;
 import com.github.lee0609x.easysecurity.util.JwtUtil;
+import com.github.lee0609x.easysecurity.util.ResponseBodyUtil;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 
 /**
  * 用户登录,赋予客户端Token
@@ -28,24 +27,22 @@ import java.io.IOException;
  */
 public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String FILTER_APPLIED = "__spring_security_demoFilter_filterApplied";
+    private static final String FILTER_APPLIED = "__spring_security_jwtLoginFilter_filterApplied";
 
-    private final String defaultSussesURL;
-    private final String defaultUnSussesURL;
-    private final long jwtTimeOut;
+    private final long timeOut;
+
+    private final String header;
 
     /**
      * @param loginRequestMatcher 请求路径匹配
      * @param authenticationManager 用户认证管理器
-     * @param defaultSussesURL 登录成功跳转
-     * @param defaultUnSussesURL 登录失败跳转
+     * @param header jwt请求头名称
      * @param timeOut 登录有效期
      */
-    public JwtLoginFilter(RequestMatcher loginRequestMatcher, AuthenticationManager authenticationManager, String defaultSussesURL, String defaultUnSussesURL, long timeOut) {
+    public JwtLoginFilter(RequestMatcher loginRequestMatcher, AuthenticationManager authenticationManager, String header, long timeOut) {
         super(loginRequestMatcher);
-        this.defaultSussesURL = defaultSussesURL;
-        this.defaultUnSussesURL = defaultUnSussesURL;
-        this.jwtTimeOut = timeOut;
+        this.header = header;
+        this.timeOut = timeOut;
         setAuthenticationManager(authenticationManager);
     }
 
@@ -68,13 +65,11 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         SecurityUser securityUser = (SecurityUser) authResult.getPrincipal();
-        securityUser.getUser().setPassword("");//将密码置空
-        String jwt = JwtUtil.getTokenBySecurityUser(securityUser, jwtTimeOut);
-        Cookie cookie = new Cookie(EasyConstants.JWT_COOKIE_NAME, jwt);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        response.sendRedirect(defaultSussesURL);
+        securityUser.getUser().setPassword(null);//将密码置空
+        String jwt = JwtUtil.getTokenBySecurityUser(securityUser, timeOut);
+        EasySecurityToken easySecurityToken = new EasySecurityToken(securityUser.getUser().getId(), header, jwt, timeOut);
+        ResponseBody<EasySecurityToken> responseBody = ResponseBodyUtil.successResponse(easySecurityToken);
+        ResponseBodyUtil.responseWrite(response, responseBody);
     }
 
     /**
@@ -87,8 +82,8 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
      */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        logger.info(String.format("用户登录失败, 重定向至:%s", defaultUnSussesURL));
-        response.sendRedirect(defaultUnSussesURL);
+        ResponseBody<String> responseBody = ResponseBodyUtil.errorResponse(ResponseBodyStatus.LOGIN_FAILURE);
+        response.getWriter().write(JsonUtil.Object2Json(responseBody));
     }
 
 }

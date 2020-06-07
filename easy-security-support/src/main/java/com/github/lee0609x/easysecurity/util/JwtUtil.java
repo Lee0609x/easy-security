@@ -1,6 +1,7 @@
 package com.github.lee0609x.easysecurity.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.model.SecurityUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +26,7 @@ public class JwtUtil {
 
     private static final SecretKey secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
-    private static String generateToken(Map<String, Object> claim, long timeOut) {
+    public static String generateToken(Map<String, Object> claim, long timeOut) {
         Date now = new Date();
         return Jwts.builder()
                 .setSubject("user-token")
@@ -36,7 +37,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    private static Claims parseToken(String token) throws SignatureException, ExpiredJwtException {
+    public static Claims parseToken(String token) throws SignatureException, ExpiredJwtException {
         Jws<Claims> claimsJws = Jwts.parserBuilder()
                 .setSigningKey(secretKey)
                 .build()
@@ -53,11 +54,11 @@ public class JwtUtil {
      */
     public static String getTokenBySecurityUser(SecurityUser securityUser, long timeOut) throws JsonProcessingException {
         String json = JsonUtil.Object2Json(securityUser);
-        logger.info(String.format("开始序列化SecurityUser:%s", json));
+        logger.debug(String.format("开始序列化SecurityUser:%s", json));
         Map<String, Object> claim = new HashMap<>();
-        claim.put("securityUser", json);
+        claim.put(EasyConstants.JWT_SECURITY_USER_KEY, json);
         String jwt = generateToken(claim, timeOut);
-        logger.info(String.format("生成Token:%s", jwt));
+        logger.debug(String.format("生成Token:%s", jwt));
         return jwt;
     }
 
@@ -66,10 +67,10 @@ public class JwtUtil {
      * @return
      */
     public static SecurityUser getSecurityUserByToken(String token) throws IOException, SignatureException, ExpiredJwtException {
-        logger.info(String.format("解析Token:%s", token));
+        logger.debug(String.format("解析Token:%s", token));
         Claims claims = parseToken(token);
-        String tokenDetail = claims.get("securityUser").toString();
-        logger.info(String.format("将JSON转换为SecurityUser:%s", tokenDetail));
+        String tokenDetail = claims.get(EasyConstants.JWT_SECURITY_USER_KEY).toString();
+        logger.debug(String.format("将JSON转换为SecurityUser:%s", tokenDetail));
         SecurityUser securityUser = JsonUtil.Json2Object(tokenDetail, SecurityUser.class);
         return securityUser;
     }
