@@ -27,7 +27,6 @@ import java.io.IOException;
  */
 public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private static final String FILTER_APPLIED = "__spring_security_jwtTokenFilter_filterApplied";//该标识会使得该Filter不被自动注入到servlet filter chain中
     private final String header;
 
     public JwtTokenFilter(String header) {

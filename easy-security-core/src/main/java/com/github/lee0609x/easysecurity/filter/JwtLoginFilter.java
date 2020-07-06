@@ -27,8 +27,6 @@ import java.util.HashMap;
  */
 public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    private static final String FILTER_APPLIED = "__spring_security_jwtLoginFilter_filterApplied";
-
     private final long timeOut;
 
     private final String header;

@@ -24,8 +24,6 @@ import java.io.IOException;
  */
 public class JwtLogoutFilter extends GenericFilterBean {
 
-    private static final String FILTER_APPLIED = "__spring_security_jwtLogoutFilter_filterApplied";
-
     private final RequestMatcher logoutRequestMatcher;
     private final LogoutHandler handler;
     private final LogoutSuccessHandler logoutSuccessHandler;

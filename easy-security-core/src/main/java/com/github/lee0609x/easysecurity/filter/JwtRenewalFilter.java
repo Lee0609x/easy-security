@@ -61,6 +61,7 @@ public class JwtRenewalFilter extends GenericFilterBean {
      */
     protected void renewal(String jwt, HttpServletResponse httpServletResponse) {
         try {
+            //TODO 其实可以直接从Security上下文中获取securityUser
             SecurityUser securityUser = JwtUtil.getSecurityUserByToken(jwt);
             String newJwt = JwtUtil.getTokenBySecurityUser(securityUser, timeout);
             EasySecurityToken easySecurityToken = new EasySecurityToken(securityUser.getUser().getId(), header, newJwt, timeout);

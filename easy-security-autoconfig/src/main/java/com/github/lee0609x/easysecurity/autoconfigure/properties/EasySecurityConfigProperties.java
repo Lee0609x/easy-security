@@ -2,7 +2,6 @@ package com.github.lee0609x.easysecurity.autoconfigure.properties;
 
 import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import sun.jvm.hotspot.debugger.Page;
 
 /**
  * Created by Lee0609x
