@@ -3,6 +3,10 @@ package com.github.lee0609x.easysecurity.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.model.SecurityUser;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityAccessToken;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityRefreshToken;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityToken;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityUserToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -73,6 +77,30 @@ public class JwtUtil {
         logger.debug(String.format("将JSON转换为SecurityUser:%s", tokenDetail));
         SecurityUser securityUser = JsonUtil.Json2Object(tokenDetail, SecurityUser.class);
         return securityUser;
+    }
+
+    public static EasySecurityAccessToken parseWebToken(String token) {
+        return (EasySecurityAccessToken) parseToken(token).get(EasyConstants.ACCESS_TOKEN_JWT_KEY);
+    }
+
+    public static EasySecurityUserToken parseUserToken(String token) {
+        return (EasySecurityUserToken) parseToken(token).get(EasyConstants.USER_TOKEN_JWT_KEY);
+    }
+
+    public static EasySecurityRefreshToken parseRefreshToken(String token) {
+        return (EasySecurityRefreshToken) parseToken(token).get(EasyConstants.REFRESH_TOKEN_JWT_KEY);
+    }
+
+    public static String generateEasySecurityToken(EasySecurityToken token, long timeout) {
+        Map<String, Object> claim = new HashMap<>();
+        if (token instanceof EasySecurityAccessToken) {
+            claim.put(EasyConstants.ACCESS_TOKEN_JWT_KEY, token);
+        } else if (token instanceof EasySecurityUserToken) {
+            claim.put(EasyConstants.USER_TOKEN_JWT_KEY, token);
+        } else if (token instanceof EasySecurityRefreshToken) {
+            claim.put(EasyConstants.REFRESH_TOKEN_JWT_KEY, token);
+        }
+        return generateToken(claim, timeout);
     }
 
 }

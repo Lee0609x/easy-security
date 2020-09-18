@@ -1,8 +1,12 @@
 package com.github.lee0609x.easysecurity.filter;
 
 
+import com.github.lee0609x.easysecurity.cache.TokenCache;
 import com.github.lee0609x.easysecurity.constants.EasyConstants;
 import com.github.lee0609x.easysecurity.model.*;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityAccessToken;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityRefreshToken;
+import com.github.lee0609x.easysecurity.model.token.EasySecurityUserToken;
 import com.github.lee0609x.easysecurity.util.JsonUtil;
 import com.github.lee0609x.easysecurity.util.JwtUtil;
 import com.github.lee0609x.easysecurity.util.ResponseBodyUtil;
@@ -31,16 +35,21 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
 
     private final String header;
 
+    private final TokenCache tokenCache;
+
     /**
      * @param loginRequestMatcher 请求路径匹配
      * @param authenticationManager 用户认证管理器
      * @param header jwt请求头名称
      * @param timeOut 登录有效期
+     * @param tokenCache token缓存服务
      */
-    public JwtLoginFilter(RequestMatcher loginRequestMatcher, AuthenticationManager authenticationManager, String header, long timeOut) {
+    public JwtLoginFilter(RequestMatcher loginRequestMatcher, AuthenticationManager authenticationManager,
+                          String header, long timeOut, TokenCache tokenCache) {
         super(loginRequestMatcher);
         this.header = header;
         this.timeOut = timeOut;
+        this.tokenCache = tokenCache;
         setAuthenticationManager(authenticationManager);
     }
 
@@ -52,7 +61,8 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
     }
 
     /**
-     * 认证成功时, 生成token并返回
+     * 认证成功时, 生成WebToken, RefreshToken，UserToken，放入缓存中
+     * 并返回WebToken与RefreshToken
      * @param request
      * @param response
      * @param chain
@@ -64,6 +74,12 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         SecurityUser securityUser = (SecurityUser) authResult.getPrincipal();
         securityUser.getUser().setPassword(null);//将密码置空
+        EasySecurityAccessToken accessToken = new EasySecurityAccessToken();
+        EasySecurityUserToken userToken = new EasySecurityUserToken();
+        EasySecurityRefreshToken refreshToken = new EasySecurityRefreshToken();
+        String id = securityUser.getUser().getId();
+        //TODO
+
         String jwt = JwtUtil.getTokenBySecurityUser(securityUser, timeOut);
         EasySecurityToken easySecurityToken = new EasySecurityToken(securityUser.getUser().getId(), header, jwt, timeOut);
         ResponseBody<EasySecurityToken> responseBody = ResponseBodyUtil.successResponse(easySecurityToken);
